@@ -140,7 +140,7 @@ postgresql:
   endpoint:
     external: true
     cloudservice: false
-    address: <postgresql_chart_name>-postgresql.default.svc.cluster.local
+    address: <postgresql_chart_name>.default.svc.cluster.local
     port: 5432
     user: rpuser
     dbName: reportportal
@@ -252,12 +252,12 @@ On this step we will install [RabbitMQ](https://github.com/helm/charts/tree/mast
 
 The following command will use your ReportPortal dependency file requirements.yaml to download all the specified charts into your charts/ directory for you:
 ```sh
-helm dependency build ./reportportal/
+helm dependency build ./reportportal/v5/
 ```
 
 Then use the following command to install RabbitMQ chart:
 ```sh
-helm install --name <rabbitmq_chart_name> --set rabbitmqUsername=rabbitmq,rabbitmqPassword=<rmq_password> ./reportportal/charts/rabbitmq-ha-1.18.0.tgz
+helm install --name <rabbitmq_chart_name> --set rabbitmqUsername=rabbitmq,rabbitmqPassword=<rmq_password> ./reportportal/v5/charts/rabbitmq-ha-1.18.0.tgz
 ```
 
 Once RabbitMQ has been deployed, copy address and port from output notes. Should be something like this:
@@ -390,12 +390,12 @@ helm repo add elastic https://helm.elastic.co
 
 Download the specified chart into your charts/ directory:
 ```sh
-helm dependency build ./reportportal/
+helm dependency build ./reportportal/v5/
 ```
 
 Install Elasticsearch:
 ```sh
-helm install --name <es_chart_name> ./reportportal/charts/elasticsearch-7.3.2.tgz
+helm install --name <es_chart_name> ./reportportal/v5/charts/elasticsearch-7.3.2.tgz
 ```
 
 7.2. Elasticsearch as an external cloud service. Connection to your AWS ElasticSearch cluster
@@ -457,11 +457,11 @@ You can install PostgreSQL from the [PostgreSQL Helm chart](https://github.com/h
 To use this type of installation, please run the following commands:  
 
 ```sh
-helm dependency build ./reportportal/
+helm dependency build ./reportportal/v5/
 ```
 
 ```sh
-helm install --name <postgresql_chart_name> --set postgresqlUsername=rpuser,postgresqlPassword=<rpuser_password>,postgresqlDatabase=reportportal ./reportportal/charts/postgresql-3.9.1.tgz
+helm install --name <postgresql_chart_name> --set postgresqlUsername=rpuser,postgresqlPassword=<rpuser_password>,postgresqlPostgresPassword=<postgres_superuser_password>,postgresqlDatabase=reportportal ./reportportal/v5/charts/postgresql-7.4.0.tgz
 ```
 
 Once PostgreSQL has been deployed, copy address and port from output notes. Should be something like this:
@@ -470,18 +470,18 @@ Once PostgreSQL has been deployed, copy address and port from output notes. Shou
 
 PostgreSQL can be accessed via port 5432 on the following DNS name from within your cluster:
 
-    <postgresql_chart_name>-postgresql.default.svc.cluster.local - Read/Write connection
+    <postgresql_chart_name>.default.svc.cluster.local - Read/Write connection
 To get the password for "postgres" run:
 
-    export POSTGRESQL_PASSWORD=$(kubectl get secret --namespace default <postgresql_chart_name>-postgresql -o jsonpath="{.data.postgresql-password}" | base64 --decode)
+    export POSTGRESQL_PASSWORD=$(kubectl get secret --namespace default <postgresql_chart_name> -o jsonpath="{.data.postgresql-password}" | base64 --decode)
 
 To connect to your database run the following command:
 
-    kubectl run <postgresql_chart_name>-postgresql-client --rm --tty -i --restart='Never' --namespace default --image bitnami/postgresql --env="PGPASSWORD=$POSTGRESQL_PASSWORD" --command -- psql --host <postgresql_chart_name>-postgresql -U postgres
+    kubectl run <postgresql_chart_name>-client --rm --tty -i --restart='Never' --namespace default --image bitnami/postgresql --env="PGPASSWORD=$POSTGRESQL_PASSWORD" --command -- psql --host <postgresql_chart_name> -U postgres
 
 To connect to your database from outside the cluster execute the following commands:
 
-    kubectl port-forward --namespace default svc/<postgresql_chart_name>-postgresql 5432:5432 &
+    kubectl port-forward --namespace default svc/<postgresql_chart_name> 5432:5432 &
     psql --host 127.0.0.1 -U postgres
 ```
 
@@ -499,7 +499,7 @@ postgresql:
   endpoint:
     external: true
     cloudservice: false
-    address: <postgresql_chart_name>-postgresql.default.svc.cluster.local
+    address: <postgresql_chart_name>.default.svc.cluster.local
     port: 5432
     user: rpuser
     dbName: reportportal
@@ -605,17 +605,17 @@ ingress:
 10. Once everything is ready, the ReportPortal Helm Chart package can be created and deployed by executing:
 
 ```sh
-helm package ./reportportal/
+helm package ./reportportal/v5/
 ```
 
 If you use PostgreSQL Helm chart, please run:
 ```sh
-helm install --name <reportportal_chart_name> --set postgresql.SecretName=<db_chart_name>-postgresql,rabbitmq.SecretName=<rabbitmq_chart_name>-rabbitmq-ha ./reportportal-5.0-SNAPSHOT.tgz
+helm install --name <reportportal_chart_name> --set postgresql.SecretName=<db_chart_name>,rabbitmq.SecretName=<rabbitmq_chart_name>-rabbitmq-ha ./reportportal/v5/
 ```
 
 If you use Amazon RDS PostgreSQL instance (You can override the specified 'rpuser' user password in values.yaml, by passing it as a parameter in this install command line):
 ```sh
-helm install --name <reportportal_chart_name> --set postgresql.endpoint.password=<postgresql_dbuser_password>,rabbitmq.SecretName=<rabbitmq_chart_name>-rabbitmq-ha ./reportportal-5.0-SNAPSHOT.tgz
+helm install --name <reportportal_chart_name> --set postgresql.endpoint.password=<postgresql_dbuser_password>,rabbitmq.SecretName=<rabbitmq_chart_name>-rabbitmq-ha ./reportportal/v5/
 ```
 
 11. Once ReportPortal is deployed, you can validate application is up and running by opening your NodePort / LoadBalancer address:

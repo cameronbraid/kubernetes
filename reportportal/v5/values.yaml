@@ -103,7 +103,7 @@ postgresql:
   endpoint:
     external: true
     cloudservice: false
-    address: <postgresql_chart_name>-postgresql.default.svc.cluster.local
+    address: <postgresql_chart_name>.default.svc.cluster.local
     port: 5432
     user: rpuser
     dbName: reportportal
